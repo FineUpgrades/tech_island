@@ -49,3 +49,6 @@ firebase-adminsdk*.json
 scratch/
 tmp/
 temp/
+
+# Firebase configuration & rules (managed directly in Firebase Console)
+firestore.rules

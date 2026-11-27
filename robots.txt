@@ -1,4 +1,4 @@
 User-agent: *
-Disallow: /studio-portal/
+Allow: /
 
 Sitemap: https://techisland.solutions/sitemap.xml
