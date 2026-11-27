@@ -17,10 +17,9 @@ import {
 (() => {
   "use strict";
 
-  // Elements
+  // Persistent Elements (Available in unauthenticated DOM)
   const configWarning = document.getElementById("config-warning");
   const loginSection = document.getElementById("login-section");
-  const dashboardSection = document.getElementById("dashboard-section");
   const authActions = document.getElementById("auth-actions");
   const adminUserEmail = document.getElementById("admin-user-email");
   const loginForm = document.getElementById("login-form");
@@ -29,50 +28,19 @@ import {
   const loginAlert = document.getElementById("login-alert");
   const loginSubmitBtn = document.getElementById("login-submit-btn");
   const logoutBtn = document.getElementById("logout-btn");
-
-  // Dashboard Stats & Table
-  const statTotal = document.getElementById("stat-total");
-  const statStandard = document.getElementById("stat-standard");
-  const statSublime = document.getElementById("stat-sublime");
-  const statCategories = document.getElementById("stat-categories");
-  const searchInput = document.getElementById("admin-search");
-  const categoryFilter = document.getElementById("admin-category-filter");
-  const tbody = document.getElementById("products-tbody");
-  const noProductsMsg = document.getElementById("no-products-msg");
-  const seedBtn = document.getElementById("seed-btn");
-
-  // Modal: Add / Edit
-  const productModal = document.getElementById("product-modal");
-  const modalHeading = document.getElementById("modal-heading");
-  const productForm = document.getElementById("product-form");
-  const editProductId = document.getElementById("edit-product-id");
-  const existingImageUrl = document.getElementById("existing-image-url");
-  const productNameInput = document.getElementById("product-name");
-  const productCategoryInput = document.getElementById("product-category");
-  const productDescInput = document.getElementById("product-desc");
-  const productImageFileInput = document.getElementById("product-image-file");
-  const productImageManualInput = document.getElementById("product-image-url-manual");
-  const productIsSublime = document.getElementById("product-is-sublime");
-  const specsContainer = document.getElementById("specs-container");
-  const addSpecRowBtn = document.getElementById("add-spec-row-btn");
-  const uploadZone = document.getElementById("upload-zone");
-  const uploadPrompt = document.getElementById("upload-prompt");
-  const imagePreview = document.getElementById("image-preview");
-  const openAddModalBtn = document.getElementById("open-add-modal-btn");
-  const emptyAddBtn = document.getElementById("empty-add-btn");
-  const modalCloseBtn = document.getElementById("modal-close-btn");
-  const modalCancelBtn = document.getElementById("modal-cancel-btn");
-  const saveProductBtn = document.getElementById("save-product-btn");
-
-  // Modal: Delete
-  const deleteModal = document.getElementById("delete-modal");
-  const deleteProductName = document.getElementById("delete-product-name");
-  const deleteCloseBtn = document.getElementById("delete-close-btn");
-  const deleteCancelBtn = document.getElementById("delete-cancel-btn");
-  const confirmDeleteBtn = document.getElementById("confirm-delete-btn");
-
-  // Toast Container
+  const dashboardMount = document.getElementById("dashboard-mount");
+  const dashboardTpl = document.getElementById("dashboard-tpl");
   const toastContainer = document.getElementById("toast-container");
+
+  // Dynamic Elements (Bound after dashboard template mounting)
+  let statTotal, statStandard, statSublime, statCategories;
+  let searchInput, categoryFilter, tbody, noProductsMsg, seedBtn;
+  let productModal, modalHeading, productForm, editProductId, existingImageUrl;
+  let productNameInput, productCategoryInput, productDescInput;
+  let productImageFileInput, productImageManualInput, productIsSublime;
+  let specsContainer, addSpecRowBtn, uploadZone, uploadPrompt, imagePreview;
+  let openAddModalBtn, emptyAddBtn, modalCloseBtn, modalCancelBtn, saveProductBtn;
+  let deleteModal, deleteProductName, deleteCloseBtn, deleteCancelBtn, confirmDeleteBtn;
 
   // State
   let currentProducts = [];
@@ -80,22 +48,25 @@ import {
   let productToDelete = null;
 
   // 1. Check Configuration Status
-  if (!isFirebaseConfigured()) {
+  if (configWarning && !isFirebaseConfigured()) {
     configWarning.style.display = "flex";
   }
 
   // 2. Auth State Listener
   onAdminAuthChange(async (user) => {
     if (user) {
-      loginSection.style.display = "none";
-      dashboardSection.style.display = "block";
-      authActions.style.display = "flex";
-      adminUserEmail.textContent = user.email || "Admin";
+      if (loginSection) loginSection.style.display = "none";
+      if (authActions) authActions.style.display = "flex";
+      if (adminUserEmail) adminUserEmail.textContent = user.email || "Admin";
+
+      // Instantiate and mount dashboard from template
+      mountDashboard();
       await loadProducts();
     } else {
-      loginSection.style.display = "block";
-      dashboardSection.style.display = "none";
-      authActions.style.display = "none";
+      unmountDashboard();
+      if (loginSection) loginSection.style.display = "block";
+      if (authActions) authActions.style.display = "none";
+      if (adminUserEmail) adminUserEmail.textContent = "";
     }
   });
 
@@ -133,14 +104,135 @@ import {
     });
   }
 
-  // 5. Load Products from Database
+  // 5. Template Mount & Unmount
+  function mountDashboard() {
+    if (!dashboardMount || !dashboardTpl) return;
+    dashboardMount.replaceChildren(dashboardTpl.content.cloneNode(true));
+    attachDashboardBindings();
+  }
+
+  function unmountDashboard() {
+    if (dashboardMount) {
+      dashboardMount.replaceChildren();
+    }
+    currentProducts = [];
+    selectedFile = null;
+    productToDelete = null;
+  }
+
+  // 6. Bind Elements and Events after Mount
+  function attachDashboardBindings() {
+    statTotal = document.getElementById("stat-total");
+    statStandard = document.getElementById("stat-standard");
+    statSublime = document.getElementById("stat-sublime");
+    statCategories = document.getElementById("stat-categories");
+    searchInput = document.getElementById("admin-search");
+    categoryFilter = document.getElementById("admin-category-filter");
+    tbody = document.getElementById("products-tbody");
+    noProductsMsg = document.getElementById("no-products-msg");
+    seedBtn = document.getElementById("seed-btn");
+
+    productModal = document.getElementById("product-modal");
+    modalHeading = document.getElementById("modal-heading");
+    productForm = document.getElementById("product-form");
+    editProductId = document.getElementById("edit-product-id");
+    existingImageUrl = document.getElementById("existing-image-url");
+    productNameInput = document.getElementById("product-name");
+    productCategoryInput = document.getElementById("product-category");
+    productDescInput = document.getElementById("product-desc");
+    productImageFileInput = document.getElementById("product-image-file");
+    productImageManualInput = document.getElementById("product-image-url-manual");
+    productIsSublime = document.getElementById("product-is-sublime");
+    specsContainer = document.getElementById("specs-container");
+    addSpecRowBtn = document.getElementById("add-spec-row-btn");
+    uploadZone = document.getElementById("upload-zone");
+    uploadPrompt = document.getElementById("upload-prompt");
+    imagePreview = document.getElementById("image-preview");
+    openAddModalBtn = document.getElementById("open-add-modal-btn");
+    emptyAddBtn = document.getElementById("empty-add-btn");
+    modalCloseBtn = document.getElementById("modal-close-btn");
+    modalCancelBtn = document.getElementById("modal-cancel-btn");
+    saveProductBtn = document.getElementById("save-product-btn");
+
+    deleteModal = document.getElementById("delete-modal");
+    deleteProductName = document.getElementById("delete-product-name");
+    deleteCloseBtn = document.getElementById("delete-close-btn");
+    deleteCancelBtn = document.getElementById("delete-cancel-btn");
+    confirmDeleteBtn = document.getElementById("confirm-delete-btn");
+
+    if (searchInput) searchInput.addEventListener("input", renderTable);
+    if (categoryFilter) categoryFilter.addEventListener("change", renderTable);
+
+    if (openAddModalBtn) openAddModalBtn.addEventListener("click", openAddModal);
+    if (emptyAddBtn) emptyAddBtn.addEventListener("click", openAddModal);
+    if (modalCloseBtn) modalCloseBtn.addEventListener("click", closeModal);
+    if (modalCancelBtn) modalCancelBtn.addEventListener("click", closeModal);
+    if (productModal) {
+      productModal.addEventListener("click", (e) => {
+        if (e.target === productModal) closeModal();
+      });
+    }
+
+    if (addSpecRowBtn) {
+      addSpecRowBtn.addEventListener("click", () => addSpecRow());
+    }
+
+    if (uploadZone) {
+      uploadZone.addEventListener("click", () => productImageFileInput.click());
+      uploadZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        uploadZone.style.borderColor = "var(--green)";
+      });
+      uploadZone.addEventListener("dragleave", () => {
+        uploadZone.style.borderColor = "var(--line)";
+      });
+      uploadZone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        uploadZone.style.borderColor = "var(--line)";
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+          handleImageFile(e.dataTransfer.files[0]);
+        }
+      });
+    }
+
+    if (productImageFileInput) {
+      productImageFileInput.addEventListener("change", (e) => {
+        if (e.target.files && e.target.files[0]) {
+          handleImageFile(e.target.files[0]);
+        }
+      });
+    }
+
+    if (productForm) {
+      productForm.addEventListener("submit", handleProductSave);
+    }
+
+    if (deleteCloseBtn) deleteCloseBtn.addEventListener("click", closeDeleteModal);
+    if (deleteCancelBtn) deleteCancelBtn.addEventListener("click", closeDeleteModal);
+    if (deleteModal) {
+      deleteModal.addEventListener("click", (e) => {
+        if (e.target === deleteModal) closeDeleteModal();
+      });
+    }
+
+    if (confirmDeleteBtn) {
+      confirmDeleteBtn.addEventListener("click", handleConfirmDelete);
+    }
+
+    if (seedBtn) {
+      seedBtn.addEventListener("click", handleSeedData);
+    }
+  }
+
+  // 7. Load Products from Database
   async function loadProducts() {
+    if (!tbody) return;
     tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 40px; color: var(--muted);">Loading products…</td></tr>`;
     try {
       const data = await getProductsFromDb();
       if (data && data.length > 0) {
         currentProducts = data;
-        if (seedBtn) seedBtn.style.display = "none"; // Database already populated
+        if (seedBtn) seedBtn.style.display = "none"; // Database populated
       } else {
         currentProducts = [];
         if (seedBtn) seedBtn.style.display = "inline-flex";
@@ -149,14 +241,18 @@ import {
     } catch (err) {
       console.error("Error loading products:", err);
       showToast("Error loading products from database.", "danger");
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 40px; color: var(--danger);">Failed to load products. Check Firestore rules.</td></tr>`;
+      if (tbody) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 40px; color: var(--danger);">Failed to load products. Check Firestore rules.</td></tr>`;
+      }
     }
   }
 
-  // 6. Render Table & Statistics
+  // 8. Render Table & Statistics
   function renderTable() {
-    const query = (searchInput.value || "").trim().toLowerCase();
-    const cat = categoryFilter.value || "";
+    if (!tbody || !statTotal) return;
+
+    const query = (searchInput?.value || "").trim().toLowerCase();
+    const cat = categoryFilter?.value || "";
 
     const filtered = currentProducts.filter((p) => {
       const matchesSearch = !query || 
@@ -177,11 +273,11 @@ import {
     // Table Content
     if (filtered.length === 0) {
       tbody.innerHTML = "";
-      noProductsMsg.style.display = "block";
+      if (noProductsMsg) noProductsMsg.style.display = "block";
       return;
     }
 
-    noProductsMsg.style.display = "none";
+    if (noProductsMsg) noProductsMsg.style.display = "none";
     tbody.innerHTML = filtered
       .map((product) => {
         const imgSrc = resolveImageSrc(product.imageUrl || product.image);
@@ -225,10 +321,7 @@ import {
     });
   }
 
-  if (searchInput) searchInput.addEventListener("input", renderTable);
-  if (categoryFilter) categoryFilter.addEventListener("change", renderTable);
-
-  // 7. Specifications Builder Helpers
+  // 9. Specifications Builder Helpers
   function addSpecRow(key = "", val = "") {
     if (!specsContainer) return;
     const row = document.createElement("div");
@@ -255,12 +348,9 @@ import {
     return specs;
   }
 
-  if (addSpecRowBtn) {
-    addSpecRowBtn.addEventListener("click", () => addSpecRow());
-  }
-
-  // 8. Add / Edit Modal Logic
+  // 10. Add / Edit Modal Logic
   function openAddModal() {
+    if (!productForm) return;
     productForm.reset();
     editProductId.value = "";
     existingImageUrl.value = "";
@@ -278,7 +368,7 @@ import {
 
   function openEditModal(id) {
     const product = currentProducts.find((p) => p.id === id);
-    if (!product) return;
+    if (!product || !productModal) return;
 
     editProductId.value = product.id;
     existingImageUrl.value = product.imageUrl || product.image || "";
@@ -324,52 +414,11 @@ import {
   }
 
   function closeModal() {
-    productModal.classList.remove("is-active");
-  }
-
-  if (openAddModalBtn) openAddModalBtn.addEventListener("click", openAddModal);
-  if (emptyAddBtn) emptyAddBtn.addEventListener("click", openAddModal);
-  if (modalCloseBtn) modalCloseBtn.addEventListener("click", closeModal);
-  if (modalCancelBtn) modalCancelBtn.addEventListener("click", closeModal);
-  if (productModal) {
-    productModal.addEventListener("click", (e) => {
-      if (e.target === productModal) closeModal();
-    });
-  }
-
-  // Image Upload Zone
-  if (uploadZone) {
-    uploadZone.addEventListener("click", () => productImageFileInput.click());
-    
-    uploadZone.addEventListener("dragover", (e) => {
-      e.preventDefault();
-      uploadZone.style.borderColor = "var(--green)";
-    });
-
-    uploadZone.addEventListener("dragleave", () => {
-      uploadZone.style.borderColor = "var(--line)";
-    });
-
-    uploadZone.addEventListener("drop", (e) => {
-      e.preventDefault();
-      uploadZone.style.borderColor = "var(--line)";
-      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-        handleImageFile(e.dataTransfer.files[0]);
-      }
-    });
-  }
-
-  if (productImageFileInput) {
-    productImageFileInput.addEventListener("change", (e) => {
-      if (e.target.files && e.target.files[0]) {
-        handleImageFile(e.target.files[0]);
-      }
-    });
+    if (productModal) productModal.classList.remove("is-active");
   }
 
   async function handleImageFile(file) {
     selectedFile = file;
-    // Show instant preview
     const reader = new FileReader();
     reader.onload = (e) => {
       imagePreview.src = e.target.result;
@@ -380,132 +429,120 @@ import {
   }
 
   // Save Product (Add or Edit)
-  if (productForm) {
-    productForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      saveProductBtn.disabled = true;
-      saveProductBtn.textContent = "Saving…";
+  async function handleProductSave(e) {
+    e.preventDefault();
+    saveProductBtn.disabled = true;
+    saveProductBtn.textContent = "Saving…";
 
-      try {
-        let finalImageUrl = existingImageUrl.value;
+    try {
+      let finalImageUrl = existingImageUrl.value;
 
-        // If a new local image was selected, compress it directly to a lightweight WebP data URL
-        if (selectedFile) {
-          saveProductBtn.textContent = "Optimizing Image…";
-          finalImageUrl = await compressImageToDataUrl(selectedFile, 800, 800, 0.82);
-        } else if (productImageManualInput.value.trim()) {
-          finalImageUrl = productImageManualInput.value.trim();
-        }
-
-        const productPayload = {
-          name: productNameInput.value.trim(),
-          category: productCategoryInput.value,
-          description: productDescInput.value.trim(),
-          imageUrl: finalImageUrl,
-          specifications: getSpecificationsFromForm(),
-          isSublime: productIsSublime.checked
-        };
-
-        if (editProductId.value) {
-          await updateProductInDb(editProductId.value, productPayload);
-          showToast(`Updated "${productPayload.name}" successfully!`, "success");
-        } else {
-          await addProductToDb(productPayload);
-          showToast(`Added "${productPayload.name}" to catalog!`, "success");
-        }
-
-        closeModal();
-        await loadProducts();
-      } catch (err) {
-        console.error("Save error:", err);
-        showToast("Error saving product: " + err.message, "danger");
-      } finally {
-        saveProductBtn.disabled = false;
-        saveProductBtn.textContent = "Save Product";
+      if (selectedFile) {
+        saveProductBtn.textContent = "Optimizing Image…";
+        finalImageUrl = await compressImageToDataUrl(selectedFile, 800, 800, 0.82);
+      } else if (productImageManualInput.value.trim()) {
+        finalImageUrl = productImageManualInput.value.trim();
       }
-    });
+
+      const productPayload = {
+        name: productNameInput.value.trim(),
+        category: productCategoryInput.value,
+        description: productDescInput.value.trim(),
+        imageUrl: finalImageUrl,
+        specifications: getSpecificationsFromForm(),
+        isSublime: productIsSublime.checked
+      };
+
+      if (editProductId.value) {
+        await updateProductInDb(editProductId.value, productPayload);
+        showToast(`Updated "${productPayload.name}" successfully!`, "success");
+      } else {
+        await addProductToDb(productPayload);
+        showToast(`Added "${productPayload.name}" to catalog!`, "success");
+      }
+
+      closeModal();
+      await loadProducts();
+    } catch (err) {
+      console.error("Save error:", err);
+      showToast("Error saving product: " + err.message, "danger");
+    } finally {
+      saveProductBtn.disabled = false;
+      saveProductBtn.textContent = "Save Product";
+    }
   }
 
-  // 8. Delete Modal Logic
+  // 11. Delete Modal Logic
   function openDeleteModal(id) {
     const product = currentProducts.find((p) => p.id === id);
-    if (!product) return;
+    if (!product || !deleteModal) return;
     productToDelete = product;
     deleteProductName.textContent = `"${product.name}"`;
     deleteModal.classList.add("is-active");
   }
 
   function closeDeleteModal() {
-    deleteModal.classList.remove("is-active");
+    if (deleteModal) deleteModal.classList.remove("is-active");
     productToDelete = null;
   }
 
-  if (deleteCloseBtn) deleteCloseBtn.addEventListener("click", closeDeleteModal);
-  if (deleteCancelBtn) deleteCancelBtn.addEventListener("click", closeDeleteModal);
-  if (deleteModal) {
-    deleteModal.addEventListener("click", (e) => {
-      if (e.target === deleteModal) closeDeleteModal();
-    });
+  async function handleConfirmDelete() {
+    if (!productToDelete) return;
+    confirmDeleteBtn.disabled = true;
+    confirmDeleteBtn.textContent = "Deleting…";
+
+    try {
+      await deleteProductFromDb(productToDelete.id);
+      showToast(`Deleted "${productToDelete.name}" successfully.`, "success");
+      closeDeleteModal();
+      await loadProducts();
+    } catch (err) {
+      console.error("Delete error:", err);
+      showToast("Error deleting product: " + err.message, "danger");
+    } finally {
+      confirmDeleteBtn.disabled = false;
+      confirmDeleteBtn.textContent = "Delete Permanently";
+    }
   }
 
-  if (confirmDeleteBtn) {
-    confirmDeleteBtn.addEventListener("click", async () => {
-      if (!productToDelete) return;
-      confirmDeleteBtn.disabled = true;
-      confirmDeleteBtn.textContent = "Deleting…";
+  // 12. Seed Existing Products
+  async function handleSeedData() {
+    if (!confirm("This will import all 65 existing products from data/products.json into your online Firebase database. Proceed?")) {
+      return;
+    }
+    seedBtn.disabled = true;
+    seedBtn.textContent = "Fetching products.json…";
 
-      try {
-        await deleteProductFromDb(productToDelete.id);
-        showToast(`Deleted "${productToDelete.name}" successfully.`, "success");
-        closeDeleteModal();
-        await loadProducts();
-      } catch (err) {
-        console.error("Delete error:", err);
-        showToast("Error deleting product: " + err.message, "danger");
-      } finally {
-        confirmDeleteBtn.disabled = false;
-        confirmDeleteBtn.textContent = "Delete Permanently";
-      }
-    });
+    try {
+      const response = await fetch("../data/products.json");
+      const productsList = await response.json();
+
+      await seedInitialProducts(productsList, (current, total) => {
+        seedBtn.textContent = `Importing (${current}/${total})…`;
+      });
+
+      showToast(`Successfully imported ${productsList.length} products to Firebase!`, "success");
+      await loadProducts();
+    } catch (err) {
+      console.error("Seed error:", err);
+      showToast("Error importing products: " + err.message, "danger");
+    } finally {
+      seedBtn.disabled = false;
+      seedBtn.textContent = "📥 Import 65 Existing Products to Firebase";
+    }
   }
 
-  // 9. Seed Existing 65 Products into Firestore
-  if (seedBtn) {
-    seedBtn.addEventListener("click", async () => {
-      if (!confirm("This will import all 65 existing products from data/products.json into your online Firebase database. Proceed?")) {
-        return;
-      }
-      seedBtn.disabled = true;
-      seedBtn.textContent = "Fetching products.json…";
-
-      try {
-        const response = await fetch("../data/products.json");
-        const productsList = await response.json();
-
-        await seedInitialProducts(productsList, (current, total) => {
-          seedBtn.textContent = `Importing (${current}/${total})…`;
-        });
-
-        showToast(`Successfully imported ${productsList.length} products to Firebase!`, "success");
-        await loadProducts();
-      } catch (err) {
-        console.error("Seed error:", err);
-        showToast("Error importing products: " + err.message, "danger");
-      } finally {
-        seedBtn.disabled = false;
-        seedBtn.textContent = "📥 Import 65 Existing Products to Firebase";
-      }
-    });
-  }
-
-  // Helpers
+  // 13. Helpers
   function resolveImageSrc(path) {
     if (!path) return "../assets/logo.png";
-    if (path.startsWith("http://") || path.startsWith("https://") || path.startsWith("data:")) {
+    if (path.startsWith("https://") || path.startsWith("http://") || path.startsWith("data:image/")) {
       return path;
     }
     if (path.startsWith("../")) return path;
-    return `../${path}`;
+    if (/^[a-zA-Z0-9_\-./]+$/.test(path)) {
+      return `../${path}`;
+    }
+    return "../assets/logo.png";
   }
 
   function escapeHtml(str) {
@@ -539,6 +576,7 @@ import {
   }
 
   function showToast(message, type = "info") {
+    if (!toastContainer) return;
     const toast = document.createElement("div");
     toast.className = "toast";
     if (type === "danger") toast.style.background = "var(--danger)";

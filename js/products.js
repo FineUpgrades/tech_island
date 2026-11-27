@@ -7,6 +7,21 @@ import { isFirebaseConfigured, getProductsFromDb } from "./firebase-config.js";
   const productGrid = document.getElementById("product-grid");
   const sublimeContainer = document.querySelector(".sublime-products");
 
+  function sanitizeProductImageSrc(src) {
+    if (!src || typeof src !== "string") return "../assets/logo.png";
+    const trimmed = src.trim();
+    if (/^https?:\/\//i.test(trimmed)) {
+      return trimmed;
+    }
+    if (/^data:image\/(?:webp|png|jpeg|jpg|svg\+xml);base64,/i.test(trimmed)) {
+      return trimmed;
+    }
+    if (!trimmed.includes(":") && /^[a-zA-Z0-9_\-./]+$/i.test(trimmed)) {
+      return trimmed.startsWith("../") ? trimmed : `../${trimmed.replace(/^\/+/, "")}`;
+    }
+    return "../assets/logo.png";
+  }
+
   if (isFirebaseConfigured() && productGrid) {
     try {
       const dbProducts = await getProductsFromDb();
@@ -19,9 +34,7 @@ import { isFirebaseConfigured, getProductsFromDb } from "./firebase-config.js";
           productGrid.innerHTML = standardList
             .map((p) => {
               const src = p.imageUrl || p.image || "";
-              const formattedSrc = (src.startsWith("http") || src.startsWith("data:"))
-                ? src
-                : (src.startsWith("../") ? src : `../${src}`);
+              const formattedSrc = sanitizeProductImageSrc(src);
 
               return `
                 <article
@@ -60,9 +73,7 @@ import { isFirebaseConfigured, getProductsFromDb } from "./firebase-config.js";
           sublimeContainer.innerHTML = sublimeList
             .map((p) => {
               const src = p.imageUrl || p.image || "";
-              const formattedSrc = (src.startsWith("http") || src.startsWith("data:"))
-                ? src
-                : (src.startsWith("../") ? src : `../${src}`);
+              const formattedSrc = sanitizeProductImageSrc(src);
 
               return `
                 <article class="sublime-product">
