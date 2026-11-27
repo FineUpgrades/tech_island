@@ -1591,6 +1591,45 @@ em {
   margin-top: 15px;
   color: var(--ink);
 }
+/* Pre-footer Callout Banner */
+.pre-footer-callout {
+  padding: 60px 24px;
+  background: #eff6ec;
+  text-align: center;
+}
+.pre-footer-eyebrow {
+  letter-spacing: 0.15em;
+  color: #4e8560;
+  font-size: 12px;
+  font-weight: 650;
+  margin: 0 0 12px;
+}
+.pre-footer-title {
+  font-family: var(--serif, 'Newsreader', Georgia, serif);
+  font-size: clamp(28px, 4vw, 38px);
+  font-weight: normal;
+  color: var(--forest, #1c4432);
+  margin: 0 0 14px;
+  line-height: 1.2;
+}
+.pre-footer-lead {
+  color: #557364;
+  font-size: 16px;
+  margin: 0 0 24px;
+}
+.pre-footer-btn {
+  display: inline-block;
+  background: #245c41;
+  color: #ffffff;
+  padding: 14px 25px;
+  border-radius: var(--radius-md, 5px);
+  text-decoration: none;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+}
+.pre-footer-btn:hover {
+  background: #173b32;
+}
 /* Footer */
 .site-footer {
   background: #0a2922;
@@ -1631,6 +1670,13 @@ em {
   font-size: 8px;
   letter-spacing: 0.13em;
   color: #6aab85;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+.back-top:hover {
+  color: #c8e6d4;
+  transform: translateY(-2px);
 }
 .back-top .icon {
   height: 17px;

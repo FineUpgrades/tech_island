@@ -366,6 +366,14 @@ html {
   font-size: 8px;
   letter-spacing: 0.13em;
   color: #6aab85;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.back-top:hover {
+  color: #c8e6d4;
+  transform: translateY(-2px);
 }
 
 .back-top .icon {
@@ -515,7 +523,7 @@ html {
   color: var(--forest, #102a20);
 }
 .dialog-content > h3 {
-  font-family: var(--sans, 'Inter', system-ui, sans-serif);
+  font-family: var(--font-primary, var(--sans, 'Inter', system-ui, sans-serif));
   font-size: 16px;
   font-weight: 600;
   color: var(--forest, #102a20);
@@ -523,7 +531,7 @@ html {
   margin-bottom: 11px;
 }
 .dialog-content > p:not(.eyebrow):not(.dialog-lead):not(.small-note) {
-  font-family: var(--sans, 'Inter', system-ui, sans-serif);
+  font-family: var(--font-primary, var(--sans, 'Inter', system-ui, sans-serif));
   font-size: 12px;
   line-height: 1.9;
   color: #627650;

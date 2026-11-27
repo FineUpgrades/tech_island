@@ -61,6 +61,26 @@ document.addEventListener("DOMContentLoaded", () => {
     onScroll();
   }
 
+  // Back to top smooth scroll
+  const prefersReducedMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)"
+  ).matches;
+  document.querySelectorAll(".back-top, a[href='#top']").forEach((link) => {
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
+      window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: prefersReducedMotion ? "auto" : "smooth",
+      });
+      if (window.history && window.history.pushState) {
+        window.history.pushState(null, "", "#top");
+      } else {
+        window.location.hash = "#top";
+      }
+    });
+  });
+
   // Universal modal dialog scroll lock & state synchronization
   const syncDialogLock = () => {
     const isAnyNativeOpen = Array.from(document.querySelectorAll("dialog")).some(

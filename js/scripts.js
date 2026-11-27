@@ -63,6 +63,26 @@
         window.addEventListener("scroll", updateHeader, { passive: true });
         updateHeader();
 
+        // Back to top smooth scroll
+        const prefersReducedMotion = window.matchMedia(
+          "(prefers-reduced-motion: reduce)",
+        ).matches;
+        $$(".back-top, a[href='#top']").forEach((link) => {
+          link.addEventListener("click", (e) => {
+            e.preventDefault();
+            window.scrollTo({
+              top: 0,
+              left: 0,
+              behavior: prefersReducedMotion ? "auto" : "smooth",
+            });
+            if (window.history && window.history.pushState) {
+              window.history.pushState(null, "", "#top");
+            } else {
+              window.location.hash = "#top";
+            }
+          });
+        });
+
         // Layered room visualization. All values and delays below are illustrative UI
         // animation choices; none are installation settings, telemetry or device commands.
         const scenes = {
