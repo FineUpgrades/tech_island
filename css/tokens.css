@@ -85,8 +85,16 @@ input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
 [tabindex]:focus-visible {
-  outline: 3px solid #87b767;
+  outline: 3px solid #285541;
   outline-offset: 4px;
+}
+
+.site-footer a:focus-visible,
+.site-footer button:focus-visible,
+.button-forest:focus-visible,
+.nav-mobile-cta:focus-visible,
+.pre-footer-callout a:focus-visible {
+  outline-color: #a8df8e;
 }
 
 img {

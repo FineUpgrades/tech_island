@@ -412,7 +412,7 @@ html {
 
 .footer-disclaimer {
   font-size: 11px;
-  color: #4e7a62;
+  color: #88b49a;
   line-height: 1.9;
   margin: 18px 0 0;
   max-width: 1060px;
@@ -492,8 +492,8 @@ html {
   position: absolute;
   top: 15px;
   right: 15px;
-  width: 35px;
-  height: 35px;
+  width: 44px;
+  height: 44px;
   background: #e9efdf;
   border: 0;
   cursor: pointer;
@@ -502,6 +502,10 @@ html {
   border-radius: 50%;
   z-index: 2;
   color: var(--forest, #102a20);
+  transition: background-color 0.15s ease;
+}
+.dialog-close:hover {
+  background: #d8e4c8;
 }
 .dialog-close .icon {
   height: 17px;
@@ -555,8 +559,8 @@ html {
     font-size: 28px;
   }
   .dialog-close {
-    width: 31px;
-    height: 31px;
+    width: 44px;
+    height: 44px;
     top: 10px;
     right: 10px;
   }

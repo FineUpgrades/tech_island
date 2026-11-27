@@ -47,6 +47,9 @@ a {
   width: min(1260px, calc(100% - 64px));
   margin: auto;
 }
+.wrap h1 em {
+  color: #617656;
+}
 .catalog-hero {
   background: linear-gradient(112deg, #f7f8f2 4%, #f0f4ea 64%, #e4eee1 100%);
   padding: 42px 0 36px;
@@ -59,6 +62,7 @@ a {
   text-transform: uppercase;
   color: var(--green);
 }
+
 .catalog-hero h1 {
   font-family: var(--font-primary);
   font-size: clamp(45px, 5vw, 72px);
@@ -517,13 +521,13 @@ a {
 }
 .site-footer {
   background: #0a2922;
-  padding: 48px 0 27px;
+  padding: 32px 0 20px;
 }
 .footer-top {
   display: flex;
   align-items: center;
   gap: 45px;
-  padding-bottom: 35px;
+  padding-bottom: 20px;
   border-bottom: 1px solid #1e4a3a;
 }
 .footer-brand img {
@@ -555,7 +559,9 @@ a {
   color: #6aab85;
   text-decoration: none;
   cursor: pointer;
-  transition: color 0.2s ease, transform 0.2s ease;
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 .back-top:hover {
   color: #c8e6d4;
@@ -698,7 +704,10 @@ dialog::backdrop {
   font-weight: 500;
   padding: 10px 18px;
   border-radius: 4px;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
   text-decoration: none;
   white-space: nowrap;
 }
@@ -998,7 +1007,6 @@ dialog::backdrop {
     gap: 8px;
   }
 }
-
 
 .modal-links .modal-btn-accent {
   background: var(--lime);

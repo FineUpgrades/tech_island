@@ -437,6 +437,9 @@ em {
   color: #f3f5ec;
   margin-bottom: 16px;
 }
+.hero-heading em {
+  color: #c2d4a1;
+}
 .hero-services {
   font-size: 11.5px;
   line-height: 1.9;
@@ -1605,7 +1608,7 @@ em {
   margin: 0 0 12px;
 }
 .pre-footer-title {
-  font-family: var(--serif, 'Newsreader', Georgia, serif);
+  font-family: var(--serif, "Newsreader", Georgia, serif);
   font-size: clamp(28px, 4vw, 38px);
   font-weight: normal;
   color: var(--forest, #1c4432);
@@ -1633,14 +1636,14 @@ em {
 /* Footer */
 .site-footer {
   background: #0a2922;
-  padding: 48px 0 27px;
+  padding: 32px 0 20px;
 }
 .footer-top {
   display: flex;
   align-items: center;
   gap: 45px;
-  padding-top: 36px;
-  padding-bottom: 36px;
+  padding-top: 20px;
+  padding-bottom: 20px;
   border-bottom: 1px solid #1e4a3a;
 }
 .footer-brand img {
@@ -1672,7 +1675,9 @@ em {
   color: #6aab85;
   text-decoration: none;
   cursor: pointer;
-  transition: color 0.2s ease, transform 0.2s ease;
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 .back-top:hover {
   color: #c8e6d4;
@@ -4325,8 +4330,8 @@ em {
 }
 /* Keep scene controls, visual and live device states together. */
 .experience {
-  padding-top: 82px;
-  padding-bottom: 82px;
+  padding-top: 64px;
+  padding-bottom: 64px;
 }
 .experience-intro {
   margin-bottom: 22px;
@@ -4360,7 +4365,7 @@ em {
   aspect-ratio: 1200/590;
 }
 .room-device-panel {
-  padding: 13px 16px 12px;
+  padding: 12px 12px 12px;
 }
 .room-device-heading {
   margin-bottom: 8px;
@@ -4575,7 +4580,7 @@ em {
   background: #fff;
   border: 1px solid #dce2d6;
   border-radius: 5px;
-  padding: 18px;
+  padding: 16px;
   min-width: 0;
   align-self: stretch;
 }
