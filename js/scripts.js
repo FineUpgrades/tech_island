@@ -1,6 +1,7 @@
 /** Public configuration. Never put API keys, access codes or private project data here. */
       window.TECHISLAND_CONFIG = Object.freeze({
         inquiryEmail: "info@lifesmartph.com",
+        inquiryWhatsApp: "+639173204918",
         inquirySubject: "Techisland smart-home design consultation",
         brandName: "Techisland",
         // The public Tech Island Project page routes inquiries through LifeSmart PH.
@@ -54,7 +55,7 @@
         window.addEventListener(
           "resize",
           () => {
-            if (window.innerWidth > 720) setMenu(false);
+            if (window.innerWidth > 900) setMenu(false);
           },
           { passive: true },
         );
@@ -1172,7 +1173,12 @@
           const data = new FormData(form);
           const name = clean(data.get("name"));
           const email = clean(data.get("email"));
+          const phone = clean(data.get("phone"));
+          const project = clean(data.get("project"));
           const location = clean(data.get("location"));
+          const stage = clean(data.get("stage"));
+          const notes = clean(data.get("notes"));
+
           if (!name || !location) {
             const empty = !name ? $("#name") : $("#location");
             empty.setCustomValidity("Please enter a value, not just spaces.");
@@ -1185,9 +1191,10 @@
             "",
             `Name: ${name}`,
             `Email: ${email}`,
-            `Project: ${clean(data.get("project"))}`,
+            phone ? `Mobile / WhatsApp: ${phone}` : null,
+            `Project: ${project}`,
             `Location: ${location}`,
-            `Stage: ${clean(data.get("stage"))}`,
+            `Stage: ${stage}`,
             "",
             "INTERESTS",
             interests.length
@@ -1195,18 +1202,44 @@
               : "Open to recommendations",
             "",
             "WHAT WOULD MAKE LIFE BETTER",
-            clean(data.get("notes")) || "To be discussed during consultation.",
+            notes || "To be discussed during consultation.",
             "",
             "Please contact me to discuss the project scope, next steps and consultation arrangements.",
-          ].join("\n");
+          ]
+            .filter((line) => line !== null)
+            .join("\n");
+
           $("#brief-summary").textContent = currentBrief;
+
+          // Configure WhatsApp Direct VIP channel
+          const waRaw = (config.inquiryWhatsApp || "+639173204918").replace(/[^\d]/g, "");
+          const waMessage = [
+            "Hello Techisland! I would like to inquire about a smart home consultation:",
+            "",
+            `*Name:* ${name}`,
+            phone ? `*Mobile:* ${phone}` : null,
+            `*Email:* ${email}`,
+            `*Project:* ${project}`,
+            `*Location:* ${location}`,
+            `*Stage:* ${stage}`,
+            interests.length ? `*Interests:* ${interests.join(", ")}` : null,
+            notes ? `*Notes:* ${notes}` : null,
+          ]
+            .filter(Boolean)
+            .join("\n");
+          const waBtn = $("#brief-whatsapp");
+          if (waBtn) {
+            waBtn.href = `https://wa.me/${waRaw}?text=${encodeURIComponent(waMessage)}`;
+          }
+
+          // Configure Email Draft
           const subject = `${config.inquirySubject || "Techisland design consultation"} — ${name}`;
           $("#brief-email").href =
             `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(currentBrief)}`;
           $("#brief-status").textContent =
-            "Your email app will open a draft. You review and send it yourself.";
+            "Select WhatsApp to chat directly with our team, or open an email draft to review.";
           $("#form-status").textContent =
-            "Your consultation brief is ready for review. It has not been sent.";
+            "Your consultation brief is ready for review.";
           showDialog($("#brief-dialog"));
         });
         // Fail closed when scripts are unavailable: the HTML submit control starts disabled.
@@ -1217,12 +1250,16 @@
           ),
         );
         $("#brief-copy").addEventListener("click", async () => {
+          const originalCopyText = $("#brief-copy").innerHTML;
           try {
             if (!navigator.clipboard?.writeText)
               throw new Error("Clipboard unavailable");
             await navigator.clipboard.writeText(currentBrief);
-            $("#brief-status").textContent =
-              "Brief copied. Nothing has been sent.";
+            $("#brief-status").textContent = "✓ Consultation brief copied to clipboard.";
+            $("#brief-copy").textContent = "Copied!";
+            setTimeout(() => {
+              $("#brief-copy").innerHTML = originalCopyText;
+            }, 3000);
           } catch (_) {
             const range = document.createRange();
             range.selectNodeContents($("#brief-summary"));
@@ -1230,7 +1267,7 @@
             selection.removeAllRanges();
             selection.addRange(range);
             $("#brief-status").textContent =
-              "Automatic copying is unavailable here. The brief is selected; use your device’s Copy command, or save a copy.";
+              "Brief selected. Use your device’s Copy command (Ctrl+C / Cmd+C).";
           }
         });
         $("#brief-download").addEventListener("click", () => {
